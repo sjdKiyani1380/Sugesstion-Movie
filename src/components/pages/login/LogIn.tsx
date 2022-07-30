@@ -12,6 +12,14 @@ import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useLoginMutation } from '../../../api/auth';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import Loading from '../../Loading/Loading';
+import { Alert } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
+import { setUser } from '../../../features/authSlice';
+
 
 function Copyright(props: any) {
   return (
@@ -29,14 +37,39 @@ function Copyright(props: any) {
 const theme = createTheme();
 
 export default function LogIn() {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const [email,setEmail] = React.useState<string | null>(); 
+  const [pas , setPas] = React.useState<string | null>();
+  const [auth,{data,isSuccess,isLoading,}] = useLoginMutation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+
+  console.log(setUser);
+  const handleSubmit = async(event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+    if(email && pas){
+        await auth({email:email,password:pas})
+    }else{
+      toast.error('Please fill in all the fields',{theme:"colored"})
+    }
   };
+
+  React.useEffect(()=>{
+    if(isSuccess){
+      navigate('/home')
+      toast.success("Your Login Is Success",{
+        theme:"colored"
+      })
+      dispatch(setUser(data.access_token))
+    }
+
+  },[isSuccess,navigate,isLoading])
+
+  if(isLoading){
+    return <Loading/>
+  }
+  
+
 
   return (
     <ThemeProvider theme={theme}>
@@ -82,6 +115,7 @@ export default function LogIn() {
                 name="email"
                 autoComplete="email"
                 autoFocus
+                onChange={e=>setEmail(e.target.value)}
               />
               <TextField
                 margin="normal"
@@ -92,7 +126,10 @@ export default function LogIn() {
                 type="password"
                 id="password"
                 autoComplete="current-password"
+                onChange={e=>setPas(e.target.value)}
+
               />
+               
               <FormControlLabel
                 control={<Checkbox value="remember" color="primary" />}
                 label="Remember me"
