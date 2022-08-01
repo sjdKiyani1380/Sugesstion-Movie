@@ -16,38 +16,20 @@ import { useLoginMutation } from "../../../api/auth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Loading from "../../Loading/Loading";
-import { Alert } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "../../../features/authSlice";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 
-function Copyright(props: any) {
-  return (
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      align="center"
-      {...props}
-    >
-      {"Copyright © "}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{" "}
-      {new Date().getFullYear()}
-      {"."}
-    </Typography>
-  );
-}
+
 
 const theme = createTheme();
 
 export default function LogIn() {
   const [email, setEmail] = React.useState<string | null>();
   const [pas, setPas] = React.useState<string | null>();
-  const [auth, { data, isSuccess, isLoading }] = useLoginMutation();
+  const [auth, { data, isLoading }] = useLoginMutation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const setuser = useAppSelector((store) => store.setUser);
+
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -59,14 +41,14 @@ export default function LogIn() {
   };
 
   React.useEffect(() => {
-    if (isSuccess) {
+    if (data) {
+      dispatch(setUser(data.access_token));
       navigate("/home");
       toast.success("Your Login Is Success", {
         theme: "colored",
       });
-      dispatch(setUser(data.access_token));
     }
-  }, [isSuccess, navigate, isLoading]);
+  }, [data, navigate, dispatch]);
 
   if (isLoading) {
     return <Loading />;
@@ -161,7 +143,6 @@ export default function LogIn() {
                   </Link>
                 </Grid>
               </Grid>
-              <Copyright sx={{ mt: 5 }} />
             </Box>
           </Box>
         </Grid>
